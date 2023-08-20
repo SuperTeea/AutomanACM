@@ -266,3 +266,19 @@ int main()
     cout<< tmp ;
 }
 ```
+
+## 二分
+
+```cpp
+int find() {
+  int l = 1, r = 1e9 + 1; // 左闭右开 注意
+  while (l + 1 < r) {
+    int mid = (l + r) / 2;
+    if (check(mid))
+      l = mid;
+    else
+      r = mid;
+  }
+  return l;
+}
+```
