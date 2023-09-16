@@ -282,3 +282,176 @@ int find() {
   return l;
 }
 ```
+
+## 矩阵
+
+```cpp
+struct mat {
+  LL a[sz][sz];
+
+  mat() { memset(a, 0, sizeof a); }
+
+  mat operator-(const mat& T) const {
+    mat res;
+    for (int i = 0; i < sz; ++i)
+      for (int j = 0; j < sz; ++j) {
+        res.a[i][j] = (a[i][j] - T.a[i][j]) % MOD;
+      }
+    return res;
+  }
+
+  mat operator+(const mat& T) const {
+    mat res;
+    for (int i = 0; i < sz; ++i)
+      for (int j = 0; j < sz; ++j) {
+        res.a[i][j] = (a[i][j] + T.a[i][j]) % MOD;
+      }
+    return res;
+  }
+
+  mat operator*(const mat& T) const {
+    mat res;
+    int r;
+    for (int i = 0; i < sz; ++i)
+      for (int k = 0; k < sz; ++k) {
+        r = a[i][k];
+        for (int j = 0; j < sz; ++j)
+          res.a[i][j] += T.a[k][j] * r, res.a[i][j] %= MOD;
+      }
+    return res;
+  }
+
+  mat operator^(LL x) const {
+    mat res, bas;
+    for (int i = 0; i < sz; ++i) res.a[i][i] = 1;
+    for (int i = 0; i < sz; ++i)
+      for (int j = 0; j < sz; ++j) bas.a[i][j] = a[i][j] % MOD;
+    while (x) {
+      if (x & 1) res = res * bas;
+      bas = bas * bas;
+      x >>= 1;
+    }
+    return res;
+  }
+};
+
+```
+
+### 最短路 Dijkstra
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <queue>
+using namespace std;
+#define int long long 
+const int maxx = 1e17;
+// 给一张图 输出 1 - n 的最短路
+
+struct node
+{
+    int dis,u;
+    bool operator>(const node& a) const { return dis > a.dis; }
+};
+
+signed main()
+{   
+    int n,m;cin>>n>>m;
+    vector<vector<pair<int,int>>> adj(n);
+    vector<int> dis(n,maxx),ptr(n,-1),vis(n);
+    priority_queue<node,vector<node>,greater<node>> q;
+    for(int i = 0; i < m;i++)
+    {
+        int u,v,w;cin>>u>>v>>w;
+        u--;v--;
+        adj[u].push_back({v,w});
+        adj[v].push_back({u,w});
+    }
+    dis[0] = 0;
+    q.push({0,0});  // index starts from zero
+    while (!q.empty())
+    {
+        int d = q.top().dis;
+        int u = q.top().u;
+        q.pop();
+        if(vis[u]) continue;
+        vis[u] = 1;
+        for(auto&& [v,w] : adj[u])
+        {
+            if(vis[v]) continue;
+            if(w + d < dis[v])
+            {
+                dis[v] = w + d;
+                ptr[v] = u;
+                q.push({dis[v],v});
+            }
+        }
+    }
+    if(ptr[n - 1] == -1)
+    {
+        cout<<-1;
+        return 0;
+    }
+    vector<int> ans;
+    ans.push_back(n);
+    for(int i = ptr[n - 1];i != -1;i = ptr[i])
+        ans.push_back(i + 1);
+    for(auto beg = ans.rbegin();beg != ans.rend();beg++)
+        cout<<*beg<<' ';
+}
+```
+
+### 最小生成树 Kruskal
+
+```cpp
+#include <vector>
+#include <iostream>
+#include <numeric>
+#include <algorithm>
+using namespace std;
+// 输出最小生成树的边权和 Kruskal 算法
+
+int find(int x,vector<int> & ufs)
+{
+    if(ufs[x] == x) return x;
+    return ufs[x] = find(ufs[x],ufs);
+}
+
+void merge(int x,int y,vector<int>& ufs)
+{
+    ufs[find(y,ufs)] = find(x,ufs);
+}
+
+int main()
+{
+    int n;cin>>n;
+    int wei = 0,cnt = 0;
+    vector<int> ufs(n);
+    vector<pair<int,pair<int,int>>> rec;
+    iota(ufs.begin(),ufs.end(),0);
+    vector<vector<int>> v(n,vector<int>(n));
+    for(int i = 0; i < n;i++)
+        for(int j = 0; j < n;j++)
+        {
+            cin>>v[i][j];
+            if(i != j) rec.push_back(make_pair(v[i][j],make_pair(i,j)));
+        } 
+    
+    sort(rec.begin(),rec.end());
+    reverse(rec.begin(),rec.end());
+    while (rec.size() && cnt < n)
+    {
+        int w,u,v;
+        w = rec.back().first;
+        u = rec.back().second.first;
+        v = rec.back().second.second;
+        if(find(u,ufs) != find(v,ufs))
+        {
+            merge(u,v,ufs);
+            wei += w;
+        }
+        rec.pop_back();
+    }
+    cout<<wei;
+}
+```
